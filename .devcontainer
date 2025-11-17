@@ -1,0 +1,94 @@
+{
+"name": "Jupyter Notebook Devcontainer",
+"build": {
+"dockerfile": "Dockerfile"
+},
+"customizations": {
+"vscode": {
+"extensions": [
+"ms-toolsai.jupyter",
+"ms-python.python",
+"ms-toolsai.jupyter-keymap",
+"ms-toolsai.jupyter-renderers",
+"ms-python.vscode-pylance"
+]
+}
+},
+"forwardPorts": [8888],
+"postCreateCommand": "pip install -r /workspace/requirements.txt || true",
+"remoteUser": "vscode",
+"features": {
+"ghcr.io/devcontainers/features/docker-in-docker:1": {}
+}
+}
+
+# Use the official devcontainer Python base image
+FROM mcr.microsoft.com/devcontainers/python:0-3.11
+
+
+# Avoid prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+
+# Upgrade pip and install Jupyter + common scientific libraries
+RUN pip install --upgrade pip setuptools wheel && \
+pip install jupyterlab notebook ipykernel numpy pandas matplotlib scipy seaborn scikit-learn opencv-python-headless && \
+python -m ipykernel.kernelspec --name python3 --display-name "Python (devcontainer)"
+
+
+# Install optional ML frameworks (CPU-only)
+RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu || true
+RUN pip install tensorflow==2.14.1 || true
+
+
+# Create a non-root user "vscode" if it doesn't already exist and set workspace permissions
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+RUN groupadd --gid $USER_GID $USERNAME || true && \
+useradd --uid $USER_UID --gid $USER_GID -m $USERNAME || true
+
+
+USER $USERNAME
+WORKDIR /workspace
+
+
+# Expose Jupyter port
+EXPOSE 8888
+
+
+# Default command: do nothing — Codespaces will open and run postCreateCommand
+CMD ["sleep", "infinity"]# Scientific stack
+numpy
+pandas
+matplotlib
+scipy
+seaborn
+scikit-learn
+
+
+# Notebook / Jupyter
+jupyterlab
+notebook
+ipykernel
+nbconvert
+
+
+# Computer vision
+opencv-python-headless
+
+
+# ML frameworks (CPU builds)
+torch
+torchvision
+tensorflow==2.14.1
+
+
+# Optional utilities
+black
+isort
+flake8
+
+
+# (Add any other project-specific dependencies below)
+  
